@@ -100,10 +100,10 @@ fn update(db_conn: &mut Connection) -> () {
 }
 
 
-fn main() {
+fn main() -> () {
     let escape = Regex::new(r"(\\|\[|\]|[.^$|(){}])").unwrap();
 
-    let cli_matches: ArgMatches = command!()
+    let cli_args = command!()
         .arg(
             arg!(-u --update "Flag to set whtther to update database")
             .action(ArgAction::SetTrue)
@@ -125,7 +125,9 @@ fn main() {
                 .required(false)
                 )
             )
-        .get_matches();
+        .version("v0.1.0")
+        .author("TotalyEnglizLitrate");
+    let cli_matches: ArgMatches = cli_args.clone().get_matches();
 
     let mut db_path: PathBuf;
     db_path = dirs::data_dir().unwrap().to_owned();
@@ -156,12 +158,16 @@ fn main() {
             Ok(is_match)
         },
     );
+    
+    let mut anycmd: bool = false;
 
     if cli_matches.get_flag("update") {
+        anycmd = true;
         update(&mut db_conn)
     }
 
     if let Some(locate_matches) = cli_matches.subcommand_matches("find") {
+        anycmd = true;
         let path_matches: Vec<String>;
         let expr: String;
         if locate_matches.get_flag("regexp") {
@@ -181,4 +187,8 @@ fn main() {
             }
         }
     }
+    if !anycmd {
+        cli_args.clone().get_matches_from(vec!["rlocate", "-h"]);
+    }
+    ()
 }
